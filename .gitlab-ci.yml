@@ -1,0 +1,30 @@
+stages:
+  - test
+  - build
+
+test:
+  stage: test
+  image: golang:1.17
+  script:
+    - go test ./...
+
+build:
+  stage: build
+  image: golang:1.17
+  script:
+    - go build -o semrush_cache
+  artifacts:
+    paths:
+      - semrush_cache
+
+push:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.mycompany.com
+    - docker build -t registry.mycompany.com/semrush_cache:latest .
+    - docker push registry.mycompany.com/semrush_cache:latest
+  only:
+    - master
